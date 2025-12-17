@@ -4,9 +4,9 @@ import torch.nn as nn
 from itertools import cycle
 
 
-class LISTA2D(nn.Module):
+class CSCNet(nn.Module):
     def __init__(self, num_input_channels=1, num_output_channels=1, kc=64, ks=7, ista_iters=3):
-        super(LISTA2D, self).__init__()
+        super(CSCNet, self).__init__()
         self._ista_iters = ista_iters
         self._layers = ista_iters
 
@@ -45,7 +45,7 @@ class RCSCNet(nn.Module):
         super(RCSCNet, self).__init__()
         self._ista_iters = ista_iters
         self._layers = ista_iters
-        self.lista2d = LISTA2D(kc=kc, ista_iters=ista_iters, ks=ks, num_input_channels=num_input_channels, num_output_channels=num_output_channels)
+        self.cscnet = CSCNet(kc=kc, ista_iters=ista_iters, ks=ks, num_input_channels=num_input_channels, num_output_channels=num_output_channels)
 
         def build_conv_layers(in_ch, out_ch, count):
             """Conv layer wrapper
@@ -74,11 +74,11 @@ class RCSCNet(nn.Module):
         for i in range(hsi_shape):
             if i == 0:
                 input_now = inputs[:, i:i + 1, :, :]
-                csc = self.lista2d.first_softthrsh(self.lista2d.fist_encoder(input_now))
+                csc = self.cscnet.first_softthrsh(self.cscnet.fist_encoder(input_now))
                 csc = csc.unsqueeze(0)
             else:
                 input_now = inputs[:, i:i + 1, :, :]
-                csc_ = self.lista2d.first_softthrsh(self.lista2d.fist_encoder(input_now))
+                csc_ = self.cscnet.first_softthrsh(self.cscnet.fist_encoder(input_now))
                 csc_ = csc_.unsqueeze(0)
                 csc = torch.cat((csc, csc_), 0)
         # csc (31, N, 128, 64, 64) (128, 512, 512)
@@ -88,15 +88,15 @@ class RCSCNet(nn.Module):
                 for i in range(hsi_shape):
                     if i == 0:
                         input_now = inputs[:, i:i + 1, :, :]
-                        res = input_now - self.lista2d.unfold_decoder[lyr](csc[i, :, :, :, :])
-                        sc_residual = self.lista2d.unfold_encoder[lyr](res)
-                        tmp_csc = self.lista2d.rest_softthrsh[lyr](csc[i, :, :, :, :] + sc_residual)
+                        res = input_now - self.cscnet.unfold_decoder[lyr](csc[i, :, :, :, :])
+                        sc_residual = self.cscnet.unfold_encoder[lyr](res)
+                        tmp_csc = self.cscnet.rest_softthrsh[lyr](csc[i, :, :, :, :] + sc_residual)
                         csc_.append(tmp_csc)
                     else:
                         input_now = inputs[:, i:i + 1, :, :]
-                        res = input_now - self.lista2d.unfold_decoder[lyr](csc[i, :, :, :, :])
-                        sc_residual = self.lista2d.unfold_encoder[lyr](res)
-                        tmp_csc = self.lista2d.rest_softthrsh[lyr](csc[i, :, :, :, :] + sc_residual)
+                        res = input_now - self.cscnet.unfold_decoder[lyr](csc[i, :, :, :, :])
+                        sc_residual = self.cscnet.unfold_encoder[lyr](res)
+                        tmp_csc = self.cscnet.rest_softthrsh[lyr](csc[i, :, :, :, :] + sc_residual)
                         zNET = self.zNET[lyr](tmp_csc)
                         zNET = self.sigmoid(self.batchnorm[lyr](zNET))
                         csc_.append(zNET * csc_[i-1] + (1 - zNET) * tmp_csc)
@@ -105,15 +105,15 @@ class RCSCNet(nn.Module):
                 for i in range(hsi_shape - 1, -1, -1):
                     if i == hsi_shape - 1:
                         input_now = inputs[:, i:i + 1, :, :]
-                        res = input_now - self.lista2d.unfold_decoder[lyr](csc[i, :, :, :, :])
-                        sc_residual = self.lista2d.unfold_encoder[lyr](res)
-                        tmp_csc = self.lista2d.rest_softthrsh[lyr](csc[i, :, :, :, :] + sc_residual)
+                        res = input_now - self.cscnet.unfold_decoder[lyr](csc[i, :, :, :, :])
+                        sc_residual = self.cscnet.unfold_encoder[lyr](res)
+                        tmp_csc = self.cscnet.rest_softthrsh[lyr](csc[i, :, :, :, :] + sc_residual)
                         csc_.insert(0, tmp_csc)
                     else:
                         input_now = inputs[:, i:i + 1, :, :]
-                        res = input_now - self.lista2d.unfold_decoder[lyr](csc[i, :, :, :, :])
-                        sc_residual = self.lista2d.unfold_encoder[lyr](res)
-                        tmp_csc = self.lista2d.rest_softthrsh[lyr](csc[i, :, :, :, :] + sc_residual)
+                        res = input_now - self.cscnet.unfold_decoder[lyr](csc[i, :, :, :, :])
+                        sc_residual = self.cscnet.unfold_encoder[lyr](res)
+                        tmp_csc = self.cscnet.rest_softthrsh[lyr](csc[i, :, :, :, :] + sc_residual)
                         zNET = self.zNET[lyr](tmp_csc)
                         zNET = self.sigmoid(self.batchnorm[lyr](zNET))
                         csc_.insert(0, zNET * csc_[0] + (1 - zNET) * tmp_csc)
@@ -125,9 +125,9 @@ class RCSCNet(nn.Module):
         for i in range(hsi_shape):
             csc_now = csc[i, :, :, :, :]
             if i == 0:
-                outputs = self.lista2d.last_decoder(csc_now)
+                outputs = self.cscnet.last_decoder(csc_now)
             else:
-                output_ = self.lista2d.last_decoder(csc_now)
+                output_ = self.cscnet.last_decoder(csc_now)
                 outputs = torch.cat((outputs, output_), 1)
         return csc, outputs
 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     '''
     for name, param in model.named_parameters():
         print(name)
-    model1 = LISTA2D()
+    model1 = CSCNet()
     for name, param in model1.named_parameters():
         print(name)
     '''

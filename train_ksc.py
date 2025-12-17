@@ -262,7 +262,7 @@ def build_model(train_cfg=None, is_freeze=True):
 def build_model_(train_cfg=None, is_freeze=False):
     model = RCSCNet()
     '''
-    model.lista2d.load_state_dict(
+    model.cscnet.load_state_dict(
         torch.load(train_cfg['pretrained_path_2d'], map_location='cpu')['model'],
         strict=True)
     '''

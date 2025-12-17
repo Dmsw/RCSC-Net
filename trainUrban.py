@@ -228,7 +228,7 @@ class UrbanTrain:
         '''
         if is_freeze:
             for name, param in model.named_parameters():
-                if "lista2d" in name or "lista1d" in name:
+                if "cscnet" in name or "lista1d" in name:
                     param.requires_grad = False
         '''
         self.finetune(model, train_loader)
