@@ -16,7 +16,7 @@ train_rcscnet.py          Finetuning the 3D RCSC-Net on target Noisy HSI
 Results on two Real World Dataset
 2.1. Indian 
 Input image at 149th band
-![Input](images/noise5.png){:height="256px" width="256px"}
+![Input](images/noise5.png = 256x256)
 Reconstructed image at 104th band by BM3D
 ![Ours](images/bm3d5.png){:height="256px" width="256px"}
 Reconstructed image at 104th band by BM4D
