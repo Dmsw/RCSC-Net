@@ -5,7 +5,7 @@ import torch.nn as nn
 import numpy as np
 import glob
 import random
-#import cv2
+import cv2
 
 
 def weights_init_kaiming(m):

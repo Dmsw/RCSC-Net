@@ -361,10 +361,8 @@ def valid(model, val_loader, val_bar, hsi_shape):
 
 class CaveFTer:
     def __init__(self, cfg_name, is_freeze=False):
-        if is_freeze:
-            ft_cfg = FT_CAVE_FREEZE_CFG[cfg_name]
-        else:
-            ft_cfg = FT_CAVE_ALL_CFG[cfg_name]
+
+        ft_cfg = FT_CAVE_ALL_CFG[cfg_name]
 
         self.ft_cfg = ft_cfg
         log_dir = ft_cfg['log_dir'].replace("<DIR>", "gamma_freeze" if is_freeze else "gamma_ftall")
@@ -506,10 +504,8 @@ class CaveFTer:
 class DFCFTer:
     def __init__(self, cfg_name, is_freeze=False):
         self.model_cfg = MODEL_CFG
-        if is_freeze:
-            ft_cfg = FT_DFC_FREEZE_CFG[cfg_name]
-        else:
-            ft_cfg = FT_DFC_ALL_CFG[cfg_name]
+
+        ft_cfg = FT_DFC_ALL_CFG[cfg_name]
         self.ft_cfg = ft_cfg
 
         log_dir = ft_cfg['log_dir'].replace("<DIR>", "gamma_freeze" if is_freeze else "gamma_ftall")
